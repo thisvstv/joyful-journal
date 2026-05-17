@@ -27,7 +27,10 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Dashboard — Vault Ledger" },
-      { name: "description", content: "Snapshot of your portfolio, cash flow and recent activity." },
+      {
+        name: "description",
+        content: "Snapshot of your portfolio, cash flow and recent activity.",
+      },
     ],
   }),
 });
@@ -50,10 +53,30 @@ const kpis = [
 ];
 
 const activity = [
-  { title: "October Tax Summary submitted for review", time: "2h ago", icon: Clock, tone: "review" },
-  { title: "Sarah J. approved Q3 P&L Statement", time: "Yesterday", icon: CheckCircle2, tone: "ok" },
-  { title: "September Reconciliation finalized", time: "3 days ago", icon: CheckCircle2, tone: "ok" },
-  { title: "New document uploaded: Vendor_Contracts.pdf", time: "5 days ago", icon: FileText, tone: "muted" },
+  {
+    title: "October Tax Summary submitted for review",
+    time: "2h ago",
+    icon: Clock,
+    tone: "review",
+  },
+  {
+    title: "Sarah J. approved Q3 P&L Statement",
+    time: "Yesterday",
+    icon: CheckCircle2,
+    tone: "ok",
+  },
+  {
+    title: "September Reconciliation finalized",
+    time: "3 days ago",
+    icon: CheckCircle2,
+    tone: "ok",
+  },
+  {
+    title: "New document uploaded: Vendor_Contracts.pdf",
+    time: "5 days ago",
+    icon: FileText,
+    tone: "muted",
+  },
 ];
 
 function Dashboard() {
@@ -130,15 +153,29 @@ function Dashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="oklch(0.92 0.01 250)" vertical={false} />
-                  <XAxis dataKey="m" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "oklch(0.5 0.02 250)" }} />
+                  <XAxis
+                    dataKey="m"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 12, fill: "oklch(0.5 0.02 250)" }}
+                  />
                   <YAxis
                     tickFormatter={(v) => `$${v}k`}
                     tickLine={false}
                     axisLine={false}
                     tick={{ fontSize: 12, fill: "oklch(0.5 0.02 250)" }}
                   />
-                  <Tooltip formatter={(v: number) => `$${v}k`} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                  <Area type="monotone" dataKey="v" stroke="oklch(0.45 0.22 265)" strokeWidth={2.5} fill="url(#cf)" />
+                  <Tooltip
+                    formatter={(v: number) => `$${v}k`}
+                    contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="v"
+                    stroke="oklch(0.45 0.22 265)"
+                    strokeWidth={2.5}
+                    fill="url(#cf)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

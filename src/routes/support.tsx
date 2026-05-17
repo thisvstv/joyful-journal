@@ -1,9 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageShell } from "@/components/layout/Topbar";
 import { MessageSquare, BookOpen, Mail, Phone, ChevronRight, LifeBuoy } from "lucide-react";
+import { isAuthenticated } from "@/lib/auth";
 
 export const Route = createFileRoute("/support")({
+  beforeLoad: async () => {
+    if (!isAuthenticated()) {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: SupportPage,
   head: () => ({
     meta: [
@@ -14,10 +20,22 @@ export const Route = createFileRoute("/support")({
 });
 
 const faqs = [
-  { q: "How do I upload a new financial document?", a: "Use the Upload Documents button in the sidebar. Drag-and-drop is also supported on every page." },
-  { q: "When is my Q3 report finalized?", a: "Your advisor will mark it Finalized once both parties approve. You'll receive a notification." },
-  { q: "Can I export reports as Excel?", a: "Yes. Click Export on any report and choose between PDF, XLSX or CSV formats." },
-  { q: "Is my data encrypted?", a: "All data is encrypted at rest (AES-256) and in transit (TLS 1.3). Documents are stored in a SOC 2 Type II facility." },
+  {
+    q: "How do I upload a new financial document?",
+    a: "Use the Upload Documents button in the sidebar. Drag-and-drop is also supported on every page.",
+  },
+  {
+    q: "When is my Q3 report finalized?",
+    a: "Your advisor will mark it Finalized once both parties approve. You'll receive a notification.",
+  },
+  {
+    q: "Can I export reports as Excel?",
+    a: "Yes. Click Export on any report and choose between PDF, XLSX or CSV formats.",
+  },
+  {
+    q: "Is my data encrypted?",
+    a: "All data is encrypted at rest (AES-256) and in transit (TLS 1.3). Documents are stored in a SOC 2 Type II facility.",
+  },
 ];
 
 function SupportPage() {
@@ -26,14 +44,31 @@ function SupportPage() {
       <PageShell>
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Support</h1>
-          <p className="mt-1 text-sm text-muted-foreground">We're here to help — usually within an hour.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            We're here to help — usually within an hour.
+          </p>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {[
-            { icon: MessageSquare, title: "Message your advisor", desc: "Sarah Jensen is online now.", cta: "Start a chat" },
-            { icon: Mail, title: "Email support", desc: "Replies within 2 business hours.", cta: "support@vaultledger.com" },
-            { icon: Phone, title: "Call us", desc: "Mon–Fri, 8am to 6pm ET.", cta: "+1 (415) 555-0142" },
+            {
+              icon: MessageSquare,
+              title: "Message your advisor",
+              desc: "Sarah Jensen is online now.",
+              cta: "Start a chat",
+            },
+            {
+              icon: Mail,
+              title: "Email support",
+              desc: "Replies within 2 business hours.",
+              cta: "support@vaultledger.com",
+            },
+            {
+              icon: Phone,
+              title: "Call us",
+              desc: "Mon–Fri, 8am to 6pm ET.",
+              cta: "+1 (415) 555-0142",
+            },
           ].map((c) => (
             <button
               key={c.title}
@@ -45,7 +80,8 @@ function SupportPage() {
               <h3 className="mt-4 text-base font-semibold">{c.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{c.desc}</p>
               <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[var(--brand)]">
-                {c.cta} <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                {c.cta}{" "}
+                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </div>
             </button>
           ))}
@@ -76,9 +112,17 @@ function SupportPage() {
               <h3 className="text-lg font-semibold">Resources</h3>
             </div>
             <ul className="mt-4 space-y-3 text-sm">
-              {["Getting started guide", "Security & compliance", "Tax preparation checklist", "Onboarding video (4 min)"].map((r) => (
+              {[
+                "Getting started guide",
+                "Security & compliance",
+                "Tax preparation checklist",
+                "Onboarding video (4 min)",
+              ].map((r) => (
                 <li key={r}>
-                  <a className="flex items-center justify-between rounded-lg p-2 -mx-2 hover:bg-secondary" href="#">
+                  <a
+                    className="flex items-center justify-between rounded-lg p-2 -mx-2 hover:bg-secondary"
+                    href="#"
+                  >
                     {r}
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </a>

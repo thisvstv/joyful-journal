@@ -1,25 +1,49 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, redirect, useSearch } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageShell } from "@/components/layout/Topbar";
+import { Switch } from "@/components/ui/switch";
 import { Check, Shield, Bell, CreditCard } from "lucide-react";
+import { isAuthenticated } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: (search.tab as string | undefined) ?? "profile",
+  }),
+  beforeLoad: async () => {
+    if (!isAuthenticated()) {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: SettingsPage,
   head: () => ({
     meta: [
       { title: "Settings — Vault Ledger" },
-      { name: "description", content: "Manage your profile, security and notification preferences." },
+      {
+        name: "description",
+        content: "Manage your profile, security and notification preferences.",
+      },
     ],
   }),
 });
 
-function Field({ label, value, type = "text" }: { label: string; value: string; type?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange?: (v: string) => void;
+  type?: string;
+}) {
   return (
     <label className="block">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
       <input
-        defaultValue={value}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
         type={type}
         className="mt-1.5 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
       />
@@ -39,53 +63,183 @@ function Toggle({
   ariaLabel: string;
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
+    <Switch
+      checked={on}
+      onCheckedChange={(checked) => onChange?.(checked)}
       aria-label={ariaLabel}
       disabled={disabled}
-      onClick={() => onChange?.(!on)}
-      className={`relative h-6 w-11 rounded-full transition-colors ${on ? "bg-[var(--brand)]" : "bg-secondary"
-        }`}
-    >
-      <span
-        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"
-          }`}
-      />
-    </button>
+      className="h-6 w-11 data-[state=checked]:bg-[var(--brand)] data-[state=unchecked]:bg-secondary"
+    />
   );
 }
 
 function SettingsPage() {
+  const { tab } = useSearch({ from: Route.id });
+  const [activeSection, setActiveSection] = useState<
+    "profile" | "security" | "notifications" | "billing"
+  >(() => {
+    if (tab === "notifications" || tab === "security" || tab === "billing") return tab;
+    return "profile";
+  });
   const [showPasswordPanel, setShowPasswordPanel] = useState(false);
   const [loginAlerts, setLoginAlerts] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [channels, setChannels] = useState({
-    email: true,
-    sms: false,
-    inApp: true,
+  const [fullName, setFullName] = useState(() => {
+    try {
+      if (typeof window === "undefined") return "Alex Morgan";
+      const p = JSON.parse(localStorage.getItem("profile") || "null");
+      return p?.fullName || "Alex Morgan";
+    } catch {
+      return "Alex Morgan";
+    }
   });
-  const [events, setEvents] = useState({
-    reportUpdates: true,
-    approvals: false,
-    threadMessages: true,
-    weeklyDigest: true,
+  const [email, setEmail] = useState(() => {
+    try {
+      if (typeof window === "undefined") return "alex@morgancapital.com";
+      const p = JSON.parse(localStorage.getItem("profile") || "null");
+      return p?.email || "alex@morgancapital.com";
+    } catch {
+      return "alex@morgancapital.com";
+    }
   });
-  const [quietHoursEnabled, setQuietHoursEnabled] = useState(false);
-  const [quietHoursStart, setQuietHoursStart] = useState("22:00");
-  const [quietHoursEnd, setQuietHoursEnd] = useState("07:00");
+  const [company, setCompany] = useState(() => {
+    try {
+      if (typeof window === "undefined") return "Morgan Capital LLC";
+      const p = JSON.parse(localStorage.getItem("profile") || "null");
+      return p?.company || "Morgan Capital LLC";
+    } catch {
+      return "Morgan Capital LLC";
+    }
+  });
+  const [phone, setPhone] = useState(() => {
+    try {
+      if (typeof window === "undefined") return "+1 (415) 555-0199";
+      const p = JSON.parse(localStorage.getItem("profile") || "null");
+      return p?.phone || "+1 (415) 555-0199";
+    } catch {
+      return "+1 (415) 555-0199";
+    }
+  });
+  const [channels, setChannels] = useState(() => {
+    try {
+      if (typeof window === "undefined") {
+        return { email: true, sms: false, inApp: true };
+      }
+      return (
+        JSON.parse(localStorage.getItem("settings_channels") || "null") || {
+          email: true,
+          sms: false,
+          inApp: true,
+        }
+      );
+    } catch {
+      return { email: true, sms: false, inApp: true };
+    }
+  });
+
+  const [events, setEvents] = useState(() => {
+    try {
+      if (typeof window === "undefined") {
+        return {
+          reportUpdates: true,
+          approvals: false,
+          threadMessages: true,
+          weeklyDigest: true,
+        };
+      }
+      return (
+        JSON.parse(localStorage.getItem("settings_events") || "null") || {
+          reportUpdates: true,
+          approvals: false,
+          threadMessages: true,
+          weeklyDigest: true,
+        }
+      );
+    } catch {
+      return { reportUpdates: true, approvals: false, threadMessages: true, weeklyDigest: true };
+    }
+  });
+
+  const [quietHoursEnabled, setQuietHoursEnabled] = useState(() => {
+    try {
+      if (typeof window === "undefined") return false;
+      return JSON.parse(localStorage.getItem("settings_quiet_hours") || "null")?.enabled || false;
+    } catch {
+      return false;
+    }
+  });
+
+  const [quietHoursStart, setQuietHoursStart] = useState(() => {
+    try {
+      if (typeof window === "undefined") return "22:00";
+      return JSON.parse(localStorage.getItem("settings_quiet_hours") || "null")?.start || "22:00";
+    } catch {
+      return "22:00";
+    }
+  });
+
+  const [quietHoursEnd, setQuietHoursEnd] = useState(() => {
+    try {
+      if (typeof window === "undefined") return "07:00";
+      return JSON.parse(localStorage.getItem("settings_quiet_hours") || "null")?.end || "07:00";
+    } catch {
+      return "07:00";
+    }
+  });
 
   const sessions = [
     { device: "MacBook Pro", location: "San Francisco, US", lastActive: "Now", current: true },
     { device: "iPhone 15", location: "San Francisco, US", lastActive: "2h ago", current: false },
-    { device: "Chrome on Windows", location: "Seattle, US", lastActive: "Yesterday", current: false },
+    {
+      device: "Chrome on Windows",
+      location: "Seattle, US",
+      lastActive: "Yesterday",
+      current: false,
+    },
   ];
 
   const invoices = [
     { id: "INV-2498", date: "2026-05-01", amount: "$120.00", status: "Paid" },
     { id: "INV-2412", date: "2026-04-01", amount: "$120.00", status: "Paid" },
   ];
+
+  // persist notification settings and profile
+  useEffect(() => {
+    localStorage.setItem("settings_channels", JSON.stringify(channels));
+  }, [channels]);
+
+  useEffect(() => {
+    localStorage.setItem("settings_events", JSON.stringify(events));
+  }, [events]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "settings_quiet_hours",
+      JSON.stringify({ enabled: quietHoursEnabled, start: quietHoursStart, end: quietHoursEnd }),
+    );
+  }, [quietHoursEnabled, quietHoursStart, quietHoursEnd]);
+
+  // load profile from storage when mounted (in case sign in created it)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("profile");
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p.fullName) setFullName(p.fullName);
+        if (p.email) setEmail(p.email);
+        if (p.company) setCompany(p.company);
+        if (p.phone) setPhone(p.phone);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  function saveProfile() {
+    const p = { fullName, email, company, phone };
+    localStorage.setItem("profile", JSON.stringify(p));
+    alert("Profile saved");
+  }
 
   return (
     <AppLayout>
@@ -98,17 +252,20 @@ function SettingsPage() {
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <nav className="space-y-1">
             {[
-              { label: "Profile", icon: Check, active: true },
-              { label: "Security", icon: Shield },
-              { label: "Notifications", icon: Bell },
-              { label: "Billing", icon: CreditCard },
+              { label: "Profile", icon: Check, key: "profile" as const },
+              { label: "Security", icon: Shield, key: "security" as const },
+              { label: "Notifications", icon: Bell, key: "notifications" as const },
+              { label: "Billing", icon: CreditCard, key: "billing" as const },
             ].map((s) => (
               <button
                 key={s.label}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${s.active
+                type="button"
+                onClick={() => setActiveSection(s.key)}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${
+                  activeSection === s.key
                     ? "bg-[var(--brand-soft)] font-semibold text-[var(--brand)]"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
+                }`}
               >
                 <s.icon className="h-4 w-4" />
                 {s.label}
@@ -117,9 +274,17 @@ function SettingsPage() {
           </nav>
 
           <div className="space-y-6 lg:col-span-2">
-            <section className="rounded-2xl border border-border bg-card p-6">
+            <section
+              className={
+                activeSection === "profile"
+                  ? "rounded-2xl border border-border bg-card p-6"
+                  : "hidden"
+              }
+            >
               <h3 className="text-lg font-semibold">Profile</h3>
-              <p className="text-sm text-muted-foreground">This is how your advisor will see you.</p>
+              <p className="text-sm text-muted-foreground">
+                This is how your advisor will see you.
+              </p>
 
               <div className="mt-5 flex items-center gap-4">
                 <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[var(--brand)] to-[var(--brand-deep)]" />
@@ -132,25 +297,49 @@ function SettingsPage() {
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Full name" value="Alex Morgan" />
-                <Field label="Email" value="alex@morgancapital.com" type="email" />
-                <Field label="Company" value="Morgan Capital LLC" />
-                <Field label="Phone" value="+1 (415) 555-0199" type="tel" />
+                <Field label="Full name" value={fullName} onChange={setFullName} />
+                <Field label="Email" value={email} onChange={setEmail} type="email" />
+                <Field label="Company" value={company} onChange={setCompany} />
+                <Field label="Phone" value={phone} onChange={setPhone} type="tel" />
               </div>
 
               <div className="mt-6 flex justify-end gap-2">
-                <button className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary">
+                <button
+                  onClick={() => {
+                    // reset to saved
+                    const raw = localStorage.getItem("profile");
+                    if (raw) {
+                      const p = JSON.parse(raw);
+                      setFullName(p.fullName || "");
+                      setEmail(p.email || "");
+                      setCompany(p.company || "");
+                      setPhone(p.phone || "");
+                    }
+                  }}
+                  className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+                >
                   Cancel
                 </button>
-                <button className="rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+                <button
+                  onClick={saveProfile}
+                  className="rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                >
                   Save changes
                 </button>
               </div>
             </section>
 
-            <section className="rounded-2xl border border-border bg-card p-6">
+            <section
+              className={
+                activeSection === "notifications"
+                  ? "rounded-2xl border border-border bg-card p-6"
+                  : "hidden"
+              }
+            >
               <h3 className="text-lg font-semibold">Notifications</h3>
-              <p className="text-sm text-muted-foreground">Control delivery channels and event alerts.</p>
+              <p className="text-sm text-muted-foreground">
+                Control delivery channels and event alerts.
+              </p>
 
               <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
                 <div className="rounded-xl border border-border bg-background p-4">
@@ -232,7 +421,9 @@ function SettingsPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h4 className="text-sm font-semibold">Quiet hours</h4>
-                    <p className="text-xs text-muted-foreground">Pause non-critical notifications overnight.</p>
+                    <p className="text-xs text-muted-foreground">
+                      Pause non-critical notifications overnight.
+                    </p>
                   </div>
                   <Toggle
                     on={quietHoursEnabled}
@@ -266,16 +457,26 @@ function SettingsPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-border bg-card p-6">
+            <section
+              className={
+                activeSection === "security"
+                  ? "rounded-2xl border border-border bg-card p-6"
+                  : "hidden"
+              }
+            >
               <h3 className="text-lg font-semibold">Security</h3>
-              <p className="text-sm text-muted-foreground">Review account access and authentication controls.</p>
+              <p className="text-sm text-muted-foreground">
+                Review account access and authentication controls.
+              </p>
 
               <div className="mt-5 space-y-4">
                 <div className="rounded-xl border border-border bg-background p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Change password</h4>
-                      <p className="text-xs text-muted-foreground">Use a unique password with at least 12 characters.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Use a unique password with at least 12 characters.
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -316,14 +517,17 @@ function SettingsPage() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Two-factor authentication</h4>
-                      <p className="text-xs text-muted-foreground">Add a second step to protect your account.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Add a second step to protect your account.
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${twoFactorEnabled
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                          twoFactorEnabled
                             ? "bg-[oklch(0.94_0.08_150)] text-[oklch(0.35_0.14_150)]"
                             : "border border-border text-muted-foreground"
-                          }`}
+                        }`}
                       >
                         {twoFactorEnabled ? "Enabled" : "Disabled"}
                       </span>
@@ -342,7 +546,9 @@ function SettingsPage() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Active sessions</h4>
-                      <p className="text-xs text-muted-foreground">Devices currently signed in to your account.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Devices currently signed in to your account.
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -355,7 +561,10 @@ function SettingsPage() {
                   <div className="mt-3 divide-y divide-border rounded-lg border border-border">
                     {sessions.length > 0 ? (
                       sessions.map((session) => (
-                        <div key={`${session.device}-${session.location}`} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                        <div
+                          key={`${session.device}-${session.location}`}
+                          className="flex items-center justify-between gap-3 px-3 py-2.5"
+                        >
                           <div>
                             <div className="text-sm font-medium">
                               {session.device}
@@ -382,17 +591,31 @@ function SettingsPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Login alerts</h4>
-                      <p className="text-xs text-muted-foreground">Get notified when a new device signs in.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Get notified when a new device signs in.
+                      </p>
                     </div>
-                    <Toggle on={loginAlerts} ariaLabel="Toggle login alerts" onChange={setLoginAlerts} />
+                    <Toggle
+                      on={loginAlerts}
+                      ariaLabel="Toggle login alerts"
+                      onChange={setLoginAlerts}
+                    />
                   </div>
                 </div>
               </div>
             </section>
 
-            <section className="rounded-2xl border border-border bg-card p-6">
+            <section
+              className={
+                activeSection === "billing"
+                  ? "rounded-2xl border border-border bg-card p-6"
+                  : "hidden"
+              }
+            >
               <h3 className="text-lg font-semibold">Billing</h3>
-              <p className="text-sm text-muted-foreground">Review plan, payment details, and invoices.</p>
+              <p className="text-sm text-muted-foreground">
+                Review plan, payment details, and invoices.
+              </p>
 
               <div className="mt-5 space-y-4">
                 <div className="rounded-xl border border-border bg-background p-4">
@@ -431,7 +654,10 @@ function SettingsPage() {
                 <div className="rounded-xl border border-border bg-background p-4">
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-semibold">Billing address</h4>
-                    <button type="button" className="text-sm font-medium text-[var(--brand)] hover:underline">
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-[var(--brand)] hover:underline"
+                    >
                       Edit
                     </button>
                   </div>
@@ -452,7 +678,10 @@ function SettingsPage() {
                     {invoices.length > 0 ? (
                       <div className="divide-y divide-border">
                         {invoices.map((invoice) => (
-                          <div key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
+                          <div
+                            key={invoice.id}
+                            className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5"
+                          >
                             <div className="min-w-0">
                               <div className="text-sm font-medium">{invoice.date}</div>
                               <div className="text-xs text-muted-foreground">{invoice.amount}</div>
