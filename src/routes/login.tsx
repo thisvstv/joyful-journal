@@ -19,14 +19,18 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
     const ok = signIn(email.trim(), password.trim());
     if (ok) {
       navigate({ to: "/" });
     } else {
       setError("Invalid credentials");
+      setLoading(false);
     }
   }
 
@@ -67,8 +71,11 @@ function LoginPage() {
             </div>
           ) : null}
 
-          <button className="w-full rounded-lg bg-[var(--brand)] py-2.5 text-sm font-medium text-white hover:opacity-90">
-            Sign in
+          <button
+            disabled={loading}
+            className="w-full rounded-lg bg-[var(--brand)] py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </div>

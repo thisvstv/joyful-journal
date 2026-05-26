@@ -129,7 +129,7 @@ function UploadPage() {
         </div>
 
         {/* Drop Zone & Camera */}
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3 animate-fade-up">
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -210,7 +210,7 @@ function UploadPage() {
 
         {/* File list */}
         {files.length > 0 && (
-          <div className="mt-4 rounded-2xl border border-border bg-card">
+          <div className="mt-4 rounded-2xl border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-5 py-3">
               <span className="text-sm font-medium">
                 {files.length} file{files.length > 1 ? "s" : ""}

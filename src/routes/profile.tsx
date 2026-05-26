@@ -1,8 +1,9 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageShell } from "@/components/layout/Topbar";
-import { isAuthenticated, signOut, getProfile, setProfile } from "@/lib/auth";
+import { useTheme } from "@/hooks/use-theme";
+import { isAuthenticated, signOut, getProfile } from "@/lib/auth";
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: async () => {
@@ -23,42 +24,14 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
+  const navigate = useNavigate();
   const [profile, setProfileState] = useState({ fullName: "", email: "", company: "", phone: "" });
-  const [isDark, setIsDark] = useState<boolean | null>(null);
+  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     const p = getProfile();
     if (p) setProfileState(p);
   }, []);
-
-  useEffect(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
-    if (saved === "dark") {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    } else if (saved === "light") {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    } else {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    }
-  }, []);
-
-  function toggleTheme() {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }
 
   const initials = profile.fullName
     ? profile.fullName
@@ -80,7 +53,7 @@ function ProfilePage() {
         </div>
 
         {/* User header */}
-        <div className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-card p-5">
+        <div className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[var(--brand)] to-[var(--brand-deep)] text-lg font-bold text-white">
             {initials}
           </div>
@@ -96,7 +69,7 @@ function ProfilePage() {
         {/* Two-column info */}
         <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
           {/* Personal Information */}
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">Personal Information</h3>
               <button className="text-xs font-medium text-[var(--brand)] hover:underline">
@@ -124,7 +97,7 @@ function ProfilePage() {
           </div>
 
           {/* Firm Details */}
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">Firm Details</h3>
               <span className="rounded-full bg-[oklch(0.94_0.08_150)] px-2.5 py-0.5 text-[11px] font-medium text-[oklch(0.35_0.14_150)]">
@@ -169,7 +142,7 @@ function ProfilePage() {
         </div>
 
         <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-sm">
             <div>
               <div className="text-sm font-semibold">Password &amp; Security</div>
               <div className="mt-0.5 text-xs text-muted-foreground">Last updated 45 days ago</div>
@@ -179,7 +152,7 @@ function ProfilePage() {
             </button>
           </div>
 
-          <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-sm">
             <div>
               <div className="text-sm font-semibold">Email Notifications</div>
               <div className="mt-0.5 text-xs text-muted-foreground">
@@ -191,7 +164,7 @@ function ProfilePage() {
             </button>
           </div>
 
-          <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-sm">
             <div>
               <div className="text-sm font-semibold">Dark Mode</div>
               <div className="mt-0.5 text-xs text-muted-foreground">
@@ -215,9 +188,9 @@ function ProfilePage() {
           <button
             onClick={() => {
               signOut();
-              window.location.href = "/login";
+              navigate({ to: "/login" });
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4 text-sm font-medium text-destructive hover:bg-secondary"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4 shadow-sm text-sm font-medium text-destructive hover:bg-secondary"
           >
             Sign Out
           </button>

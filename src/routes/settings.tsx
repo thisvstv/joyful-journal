@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useSearch } from "@tanstack/react-router";
+import { createFileRoute, redirect, useSearch, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageShell } from "@/components/layout/Topbar";
@@ -74,6 +74,7 @@ function Toggle({
 }
 
 function SettingsPage() {
+  const navigate = useNavigate();
   const { tab } = useSearch({ from: Route.id });
   const [activeSection, setActiveSection] = useState<
     "profile" | "security" | "notifications" | "billing"
@@ -82,6 +83,9 @@ function SettingsPage() {
     return "profile";
   });
   const [showPasswordPanel, setShowPasswordPanel] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loginAlerts, setLoginAlerts] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [fullName, setFullName] = useState(() => {
@@ -219,6 +223,13 @@ function SettingsPage() {
     );
   }, [quietHoursEnabled, quietHoursStart, quietHoursEnd]);
 
+  // sync active section from URL search param
+  useEffect(() => {
+    if (tab === "profile" || tab === "security" || tab === "notifications" || tab === "billing") {
+      setActiveSection(tab);
+    }
+  }, [tab]);
+
   // load profile from storage when mounted (in case sign in created it)
   useEffect(() => {
     try {
@@ -260,7 +271,10 @@ function SettingsPage() {
               <button
                 key={s.label}
                 type="button"
-                onClick={() => setActiveSection(s.key)}
+                onClick={() => {
+                  setActiveSection(s.key);
+                  navigate({ to: "/settings", search: { tab: s.key } });
+                }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${
                   activeSection === s.key
                     ? "bg-[var(--brand-soft)] font-semibold text-[var(--brand)]"
@@ -277,7 +291,7 @@ function SettingsPage() {
             <section
               className={
                 activeSection === "profile"
-                  ? "rounded-2xl border border-border bg-card p-6"
+                  ? "rounded-2xl border border-border bg-card p-6 shadow-sm"
                   : "hidden"
               }
             >
@@ -332,7 +346,7 @@ function SettingsPage() {
             <section
               className={
                 activeSection === "notifications"
-                  ? "rounded-2xl border border-border bg-card p-6"
+                  ? "rounded-2xl border border-border bg-card p-6 shadow-sm"
                   : "hidden"
               }
             >
@@ -342,7 +356,7 @@ function SettingsPage() {
               </p>
 
               <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <h4 className="text-sm font-semibold">Channels</h4>
                   <div className="mt-3 divide-y divide-border">
                     {[
@@ -367,7 +381,7 @@ function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <h4 className="text-sm font-semibold">Events</h4>
                   <div className="mt-3 divide-y divide-border">
                     {[
@@ -417,7 +431,7 @@ function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-4 rounded-xl border border-border bg-background p-4">
+              <div className="mt-4 rounded-xl border border-border bg-background p-4 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h4 className="text-sm font-semibold">Quiet hours</h4>
@@ -460,7 +474,7 @@ function SettingsPage() {
             <section
               className={
                 activeSection === "security"
-                  ? "rounded-2xl border border-border bg-card p-6"
+                  ? "rounded-2xl border border-border bg-card p-6 shadow-sm"
                   : "hidden"
               }
             >
@@ -470,7 +484,7 @@ function SettingsPage() {
               </p>
 
               <div className="mt-5 space-y-4">
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Change password</h4>
@@ -490,14 +504,34 @@ function SettingsPage() {
                   {showPasswordPanel ? (
                     <div className="mt-4 rounded-lg border border-border bg-card p-4">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <Field label="Current password" value="" type="password" />
-                        <Field label="New password" value="" type="password" />
-                        <Field label="Confirm password" value="" type="password" />
+                        <Field
+                          label="Current password"
+                          value={currentPassword}
+                          onChange={setCurrentPassword}
+                          type="password"
+                        />
+                        <Field
+                          label="New password"
+                          value={newPassword}
+                          onChange={setNewPassword}
+                          type="password"
+                        />
+                        <Field
+                          label="Confirm password"
+                          value={confirmPassword}
+                          onChange={setConfirmPassword}
+                          type="password"
+                        />
                       </div>
                       <div className="mt-4 flex justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => setShowPasswordPanel(false)}
+                          onClick={() => {
+                            setShowPasswordPanel(false);
+                            setCurrentPassword("");
+                            setNewPassword("");
+                            setConfirmPassword("");
+                          }}
                           className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
                         >
                           Cancel
@@ -513,7 +547,7 @@ function SettingsPage() {
                   ) : null}
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Two-factor authentication</h4>
@@ -542,7 +576,7 @@ function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Active sessions</h4>
@@ -587,7 +621,7 @@ function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Login alerts</h4>
@@ -608,7 +642,7 @@ function SettingsPage() {
             <section
               className={
                 activeSection === "billing"
-                  ? "rounded-2xl border border-border bg-card p-6"
+                  ? "rounded-2xl border border-border bg-card p-6 shadow-sm"
                   : "hidden"
               }
             >
@@ -618,7 +652,7 @@ function SettingsPage() {
               </p>
 
               <div className="mt-5 space-y-4">
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <h4 className="text-sm font-semibold">Plan summary</h4>
                   <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
@@ -636,7 +670,7 @@ function SettingsPage() {
                   </dl>
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h4 className="text-sm font-semibold">Payment method</h4>
@@ -651,7 +685,7 @@ function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-semibold">Billing address</h4>
                     <button
@@ -672,7 +706,7 @@ function SettingsPage() {
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
                   <h4 className="text-sm font-semibold">Recent invoices</h4>
                   <div className="mt-3 rounded-lg border border-border">
                     {invoices.length > 0 ? (

@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageShell } from "@/components/layout/Topbar";
 import { isAuthenticated } from "@/lib/auth";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/notifications")({
   }),
 });
 
-const allNotifications = [
+const initialNotifications = [
   {
     id: 1,
     icon: FileText,
@@ -95,7 +96,12 @@ const allNotifications = [
 ];
 
 function NotificationsPage() {
-  const unreadCount = allNotifications.filter((n) => n.unread).length;
+  const [notifications, setNotifications] = useState(initialNotifications);
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  function markAllAsRead() {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  }
 
   return (
     <AppLayout>
@@ -110,18 +116,21 @@ function NotificationsPage() {
             </p>
           </div>
           {unreadCount > 0 && (
-            <button className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary">
+            <button
+              onClick={markAllAsRead}
+              className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+            >
               Mark all as read
             </button>
           )}
         </div>
 
         <div className="mt-6 space-y-2">
-          {allNotifications.length > 0 ? (
-            allNotifications.map((n) => (
+          {notifications.length > 0 ? (
+            notifications.map((n) => (
               <div
                 key={n.id}
-                className={`flex items-start gap-4 rounded-2xl border p-4 transition-colors ${
+                className={`flex items-start gap-4 rounded-2xl border p-4 shadow-sm transition-colors ${
                   n.unread
                     ? "border-[var(--brand)]/20 bg-[var(--brand-soft)]/30"
                     : "border-border bg-card"

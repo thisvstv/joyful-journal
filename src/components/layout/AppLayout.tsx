@@ -9,6 +9,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const header = (
+    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="flex items-center gap-3 px-4 sm:px-8 h-16">
+        {isMobile && (
+          <SheetTrigger asChild>
+            <button className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary">
+              <Menu className="h-5 w-5" />
+            </button>
+          </SheetTrigger>
+        )}
+        <Topbar />
+      </div>
+    </header>
+  );
+
   if (isMobile) {
     return (
       <div className="flex min-h-screen bg-background text-foreground">
@@ -17,15 +32,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <Sidebar onNavigate={() => setSidebarOpen(false)} />
           </SheetContent>
           <main className="flex w-full flex-col">
-            <div className="flex items-center gap-2 px-4 pt-4">
-              <SheetTrigger asChild>
-                <button className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary">
-                  <Menu className="h-5 w-5" />
-                </button>
-              </SheetTrigger>
-              <Topbar />
-            </div>
-            {children}
+            {header}
+            <div className="flex-1">{children}</div>
           </main>
         </Sheet>
       </div>
@@ -36,10 +44,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
       <main className="flex min-w-0 flex-1 flex-col">
-        <div className="px-8 pt-6">
-          <Topbar />
-        </div>
-        {children}
+        {header}
+        <div className="flex-1">{children}</div>
       </main>
     </div>
   );

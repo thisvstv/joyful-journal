@@ -4,6 +4,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Heading";
+  src: local("DM Serif Display"), local("Georgia"), local("Times New Roman");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Body";
+  src: local("DM Sans"), local("Segoe UI"), local("Helvetica Neue");
+  font-display: swap;
+}
+
 /*
  * Design system definition.
  *
@@ -19,6 +31,8 @@
  */
 
 @theme inline {
+  --font-heading: "Heading", "DM Serif Display", Georgia, serif;
+  --font-body: "Body", "DM Sans", "Segoe UI", Helvetica, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -147,5 +161,43 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-body);
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-up-d1 {
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+.animate-fade-up-d2 {
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.animate-fade-up-d3 {
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.animate-fade-up-d4 {
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }

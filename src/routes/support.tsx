@@ -72,7 +72,7 @@ function SupportPage() {
           ].map((c) => (
             <button
               key={c.title}
-              className="group flex flex-col items-start rounded-2xl border border-border bg-card p-6 text-left transition-shadow hover:shadow-sm"
+              className="group flex flex-col items-start rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--brand-soft)] text-[var(--brand)]">
                 <c.icon className="h-5 w-5" />
@@ -88,7 +88,7 @@ function SupportPage() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
             <div className="flex items-center gap-2">
               <LifeBuoy className="h-5 w-5 text-[var(--brand)]" />
               <h3 className="text-lg font-semibold">Frequently asked</h3>
@@ -119,13 +119,10 @@ function SupportPage() {
                 "Onboarding video (4 min)",
               ].map((r) => (
                 <li key={r}>
-                  <a
-                    className="flex items-center justify-between rounded-lg p-2 -mx-2 hover:bg-secondary"
-                    href="#"
-                  >
+                  <button className="flex w-full items-center justify-between rounded-lg p-2 -mx-2 hover:bg-secondary">
                     {r}
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>

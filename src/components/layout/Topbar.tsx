@@ -9,6 +9,7 @@ import {
   AlertCircle,
   FileText,
   CheckCircle2,
+  Command,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -20,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/hooks/use-theme";
 import { signOut, getProfile } from "@/lib/auth";
 
 const notifications = [
@@ -49,48 +51,17 @@ const notifications = [
   },
 ];
 
-export function Topbar({
-  placeholder = "Search reports, transactions...",
-}: {
-  placeholder?: string;
-}) {
+export function Topbar() {
   const navigate = useNavigate();
-  const [isDark, setIsDark] = useState<boolean | null>(null);
+  const { isDark, toggleTheme } = useTheme();
   const [profileName, setProfileName] = useState("");
-
-  useEffect(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
-    if (saved === "dark") {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    } else if (saved === "light") {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    } else {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    }
-  }, []);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   useEffect(() => {
     const p = getProfile();
     if (p?.fullName) setProfileName(p.fullName);
   }, []);
-
-  function toggleTheme() {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }
 
   function handleSignOut() {
     signOut();
@@ -107,32 +78,71 @@ export function Topbar({
     : "?";
 
   return (
-    <div className="flex items-center gap-2 sm:gap-4 flex-1">
-      <div className="relative flex-1 max-w-2xl">
-        <Search className="pointer-events-none absolute left-3 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="flex items-center justify-between flex-1 gap-4">
+      {/* Search - desktop */}
+      <div className="relative hidden sm:block flex-1 max-w-md lg:max-w-lg">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          placeholder={placeholder}
-          className="h-10 sm:h-11 w-full rounded-full border border-border bg-card pl-9 sm:pl-11 pr-4 text-sm outline-none transition-shadow focus:ring-2 focus:ring-[var(--brand)]/30"
+          placeholder="Search documents, reports..."
+          className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-10 text-sm outline-none transition-all focus:ring-2 focus:ring-[var(--brand)]/30 focus:shadow-sm"
         />
+        <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground sm:flex">
+          <Command className="h-3 w-3" />K
+        </kbd>
       </div>
-      <div className="flex items-center gap-1 sm:gap-2">
+
+      {/* Search - mobile icon */}
+      <button
+        onClick={() => setMobileSearchOpen((o) => !o)}
+        className="flex sm:hidden h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary"
+      >
+        <Search className="h-4 w-4" />
+      </button>
+
+      {mobileSearchOpen && (
+        <div className="absolute inset-x-0 top-16 z-50 border-b border-border bg-background px-4 pb-4 pt-2 sm:hidden">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              autoFocus
+              placeholder="Search..."
+              className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              onBlur={() => setMobileSearchOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-1 sm:gap-1.5">
         <button
           onClick={toggleTheme}
           aria-pressed={!!isDark}
-          className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary"
         >
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary">
+            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary">
               <Bell className="h-4 w-4" />
-              <span className="absolute right-2 top-2 sm:right-2.5 sm:top-2.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-red-500" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white">
+                  {unreadCount}
+                </span>
+              )}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-72 sm:w-80">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuLabel className="flex items-center justify-between">
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--brand)]">
+                  {unreadCount} new
+                </span>
+              )}
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {notifications.length > 0 ? (
               notifications.map((n) => (
@@ -175,11 +185,11 @@ export function Topbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="ml-1 sm:ml-2 h-9 w-px bg-border" />
+        <div className="mx-1 h-6 w-px bg-border" />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="ml-1 sm:ml-2 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--brand)] to-[var(--brand-deep)] text-xs font-bold text-white ring-offset-background transition-shadow hover:ring-2 hover:ring-[var(--brand)]/30">
+            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--brand)] to-[var(--brand-deep)] text-[11px] font-bold text-white ring-offset-background transition-shadow hover:ring-2 hover:ring-[var(--brand)]/30">
               {initials}
             </button>
           </DropdownMenuTrigger>
@@ -213,5 +223,5 @@ export function Topbar({
 }
 
 export function PageShell({ children }: { children: React.ReactNode }) {
-  return <div className="px-4 sm:px-8 pb-10 pt-4">{children}</div>;
+  return <div className="px-4 sm:px-8 pb-10 pt-6">{children}</div>;
 }

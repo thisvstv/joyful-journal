@@ -6,7 +6,6 @@ import {
   HelpCircle,
   Settings,
   LogOut,
-  Upload,
   FolderUp,
 } from "lucide-react";
 import { signOut } from "@/lib/auth";
@@ -28,7 +27,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-background px-4 py-6">
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-background px-4 py-6 shadow-[1px_0_2px_-2px_rgba(0,0,0,0.05)]">
       <Link to="/" onClick={handleNav} className="flex items-center gap-3 px-2">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-foreground text-background">
           <span className="text-sm font-bold">VL</span>
@@ -63,17 +62,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      <div className="mt-auto flex flex-col gap-4">
-        <button
-          onClick={() => {
-            navigate({ to: "/upload" });
-            handleNav();
-          }}
-          className="flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-        >
-          <Upload className="h-4 w-4" />
-          Upload Documents
-        </button>
+      <div className="mt-auto flex flex-col">
         <div className="border-t border-border pt-4">
           <Link
             to="/settings"

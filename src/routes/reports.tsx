@@ -132,7 +132,7 @@ function Reports() {
           {reports.map((r) => (
             <div
               key={r.id}
-              className="rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-sm"
+              className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-start justify-between">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--brand-soft)] text-[var(--brand)]">
@@ -173,7 +173,7 @@ function Reports() {
             <MessageSquare className="h-4 w-4" />
             Active Thread
           </div>
-          <div className="mt-3 rounded-2xl border border-border bg-card p-6">
+          <div className="mt-3 rounded-2xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-base font-semibold">Re: October Income Statement</div>

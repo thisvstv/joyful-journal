@@ -100,8 +100,11 @@ function Dashboard() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="rounded-2xl border border-border bg-card p-5">
+          {kpis.map((k, i) => (
+            <div
+              key={k.label}
+              className={`rounded-2xl border border-border bg-card p-5 shadow-sm animate-fade-up-d${i + 1}`}
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">{k.label}</span>
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-soft)] text-[var(--brand)]">
@@ -122,7 +125,7 @@ function Dashboard() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm animate-fade-up lg:col-span-2">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold">Cash Flow</h3>
@@ -181,7 +184,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-6">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm animate-fade-up-d2">
             <h3 className="text-lg font-semibold">Recent Activity</h3>
             <div className="mt-4 space-y-4">
               {activity.map((a, i) => (

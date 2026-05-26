@@ -37,6 +37,7 @@ export const Route = createFileRoute("/history")({
 interface DocRow {
   id: string;
   date: string;
+  dateSort: string;
   doc: string;
   category: string;
   status: string;
@@ -47,6 +48,7 @@ const rows: DocRow[] = [
   {
     id: "d1",
     date: "Oct 31, 2026",
+    dateSort: "2026-10-31",
     doc: "October Invoice Pack.pdf",
     category: "Sales Invoice",
     status: "Processing",
@@ -55,6 +57,7 @@ const rows: DocRow[] = [
   {
     id: "d2",
     date: "Oct 28, 2026",
+    dateSort: "2026-10-28",
     doc: "Vendor_Statement_Q4.pdf",
     category: "Bank Statement",
     status: "Approved",
@@ -63,6 +66,7 @@ const rows: DocRow[] = [
   {
     id: "d3",
     date: "Oct 12, 2026",
+    dateSort: "2026-10-12",
     doc: "Receipt_2026-10-12.jpg",
     category: "Purchase Receipt",
     status: "Needs Action",
@@ -71,6 +75,7 @@ const rows: DocRow[] = [
   {
     id: "d4",
     date: "Oct 10, 2026",
+    dateSort: "2026-10-10",
     doc: "Bank_Statement_Oct.pdf",
     category: "Bank Statement",
     status: "Approved",
@@ -79,6 +84,7 @@ const rows: DocRow[] = [
   {
     id: "d5",
     date: "Oct 05, 2026",
+    dateSort: "2026-10-05",
     doc: "Payroll_October.xlsx",
     category: "Payroll Report",
     status: "Pending",
@@ -87,6 +93,7 @@ const rows: DocRow[] = [
   {
     id: "d6",
     date: "Oct 02, 2026",
+    dateSort: "2026-10-02",
     doc: "Q3_Tax_Return.pdf",
     category: "Tax Document",
     status: "Approved",
@@ -95,6 +102,7 @@ const rows: DocRow[] = [
   {
     id: "d7",
     date: "Sep 28, 2026",
+    dateSort: "2026-09-28",
     doc: "Sep_Expense_Report.pdf",
     category: "Expense Report",
     status: "Approved",
@@ -103,6 +111,7 @@ const rows: DocRow[] = [
   {
     id: "d8",
     date: "Sep 24, 2026",
+    dateSort: "2026-09-24",
     doc: "Bank_Statement_Sep.pdf",
     category: "Bank Statement",
     status: "Approved",
@@ -111,6 +120,7 @@ const rows: DocRow[] = [
   {
     id: "d9",
     date: "Sep 18, 2026",
+    dateSort: "2026-09-18",
     doc: "Receipt_2026-09-15.jpg",
     category: "Purchase Receipt",
     status: "Needs Action",
@@ -119,6 +129,7 @@ const rows: DocRow[] = [
   {
     id: "d10",
     date: "Sep 12, 2026",
+    dateSort: "2026-09-12",
     doc: "Contract_Amend_3.pdf",
     category: "Contract",
     status: "Approved",
@@ -183,8 +194,8 @@ function HistoryPage() {
     const matchStatus =
       filterStatus === "All" ||
       (filterStatus === "Needs Action" ? r.status === "Needs Action" : r.status === filterStatus);
-    const matchDateFrom = !filterDateFrom || r.date.localeCompare(filterDateFrom) >= 0;
-    const matchDateTo = !filterDateTo || r.date.localeCompare(filterDateTo) <= 0;
+    const matchDateFrom = !filterDateFrom || r.dateSort >= filterDateFrom;
+    const matchDateTo = !filterDateTo || r.dateSort <= filterDateTo;
     return matchSearch && matchCategory && matchStatus && matchDateFrom && matchDateTo;
   });
 
@@ -319,7 +330,7 @@ function HistoryPage() {
         <div className="mt-6 flex gap-6">
           {/* Table */}
           <div
-            className={`overflow-hidden rounded-2xl border border-border bg-card ${
+            className={`overflow-hidden rounded-2xl border border-border bg-card shadow-sm ${
               selectedDoc && !isMobile ? "flex-1" : "w-full"
             }`}
           >
@@ -404,7 +415,7 @@ function HistoryPage() {
 
           {/* Thread panel (split-view) */}
           {selectedDoc && !isMobile && (
-            <div className="flex w-96 shrink-0 flex-col rounded-2xl border border-border bg-card">
+            <div className="flex w-96 shrink-0 flex-col rounded-2xl border border-border bg-card shadow-sm">
               <div className="flex items-center justify-between border-b border-border px-5 py-4">
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-semibold uppercase tracking-wider text-[var(--brand)]">
@@ -481,7 +492,14 @@ function HistoryPage() {
                         placeholder="Reply to thread..."
                         className="h-10 w-full rounded-full border border-border bg-background pl-10 pr-11 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
                       />
-                      <button className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--brand)] text-white">
+                      <button
+                        onClick={() => {
+                          if (replyText.trim()) {
+                            setReplyText("");
+                          }
+                        }}
+                        className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--brand)] text-white"
+                      >
                         <Send className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -526,10 +544,24 @@ function HistoryPage() {
                 )}
               </div>
               <div className="border-t border-border p-3">
-                <input
-                  placeholder="Reply..."
-                  className="h-10 w-full rounded-full border border-border bg-background px-4 pr-11 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
-                />
+                <div className="relative">
+                  <input
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Reply..."
+                    className="h-10 w-full rounded-full border border-border bg-background pl-4 pr-11 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+                  />
+                  <button
+                    onClick={() => {
+                      if (replyText.trim()) {
+                        setReplyText("");
+                      }
+                    }}
+                    className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--brand)] text-white"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
